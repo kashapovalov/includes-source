@@ -103,3 +103,33 @@ def abort(message, code=405):
             "message": message
         }
     )
+
+# -------------------------------- ПОлучение разницы двух текстов от 0.0 до 1.0 --
+def levenstein_difference(main, correction):
+    size_x = len(main) + 1
+    size_y = len(correction) + 1
+    matrix = numpy.zeros ((size_x, size_y))
+    for x in range(size_x):
+        matrix [x, 0] = x
+    for y in range(size_y):
+        matrix [0, y] = y
+
+    for x in range(1, size_x):
+        for y in range(1, size_y):
+            if main[x-1] == correction[y-1]:
+                matrix [x,y] = min(
+                    matrix[x-1, y] + 1,
+                    matrix[x-1, y-1],
+                    matrix[x, y-1] + 1
+                )
+            else:
+                matrix [x,y] = min(
+                    matrix[x-1,y] + 1,
+                    matrix[x-1,y-1] + 1,
+                    matrix[x,y-1] + 1
+                )
+
+    ln = max([ len(main), len(correction) ])
+    if not ln:
+        return 1.0
+    return int(matrix[size_x - 1, size_y - 1]) / ln
