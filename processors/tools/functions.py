@@ -1,4 +1,5 @@
 import hashlib, uuid, numpy, logging, asyncio, json, time, json5, traceback, sys
+from pydub import AudioSegment
 from fastapi.responses import JSONResponse
 
 try:
@@ -133,3 +134,84 @@ def levenstein_difference(main, correction):
     if not ln:
         return 1.0
     return int(matrix[size_x - 1, size_y - 1]) / ln
+
+
+def detect_audio_format_by_content(file_data):
+    if len(file_data) < 12:
+        return None
+
+    header = file_data[:12]
+
+    if header.startswith(b'RIFF') and b'WAVE' in file_data[:20]:
+        return 'wav'
+
+    if header.startswith(b'ID3') or header.startswith(b'\xff\xfb') or header.startswith(b'\xff\xfa'):
+        return 'mp3'
+
+    if header.startswith(b'fLaC'):
+        return 'flac'
+
+    if header.startswith(b'OggS'):
+        if b'OpusHead' in file_data[:100]:
+            return 'ogg'
+
+    if b'ftyp' in header:
+        return 'm4a'
+
+    if header.startswith(b'\x1a\x45\xdf\xa3'):
+        return 'webm'
+
+    return None
+
+
+
+async def convert_audio(audio, cut_audio=True):
+    try:
+        maxLen = 25*16000
+        audio_format = await asyncio.to_thread(detect_audio_format_by_content, audio)
+        a = await asyncio.to_thread( lambda: AudioSegment.from_file(io.BytesIO(audio), format=audio_format).set_sample_width(2).set_frame_rate(16000) )
+        if cut_audio:
+            a = a[:maxLen]
+        if a.channels > 1:
+            a = await asyncio.to_thread(a.set_channels,1)
+
+    except Exception as exc:
+        logging.error(traceback.format_exc())
+        return "WrongAudioFormat", None
+
+    if a.duration_seconds < 0.2:
+        return "AudioTooShortOrEmpty", None
+
+    return None, a
+
+
+async def put_audio_to_shm(request, audio):
+
+    error, a = await convert_audio(audio)
+    if error:
+        return error, None, None
+
+    # Зальем в оперативу сконвертированный файл
+    audio_buffer = io.BytesIO()
+    await asyncio.to_thread( lambda: a.export(audio_buffer, format='wav')  )
+    audio_bytes = audio_buffer.read()
+
+    # Размещаем в памяти
+    size = len(audio_bytes)
+    if size > (request.app.state.end - request.app.state.start):
+        return "FileIsTooBig", None, None
+
+    if request.app.state.shift + size >= request.app.state.end:
+        request.app.state.shift = request.app.state.start
+
+    start = request.app.state.shift
+    end = start + size
+    request.app.state.shift += end + 1
+
+    # Размещаем в Shared
+    try:
+        request.app.state.shm.buf[start:end] = audio_bytes
+    except Exception as exc:
+        logging.error(traceback.format_exc())
+        return "SharedMemoryError", None, None
+    return None, start, end
