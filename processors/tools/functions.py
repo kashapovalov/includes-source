@@ -1,6 +1,7 @@
 import hashlib, uuid, numpy, logging, asyncio, json, time, json5, traceback, sys
 from pydub import AudioSegment
 from fastapi.responses import JSONResponse
+import io
 
 try:
     with open('config.json') as f:
