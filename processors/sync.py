@@ -34,6 +34,7 @@ def worker(exchanger, name, args):
         return None
 
     conf_path = join('/tmp', service, 'lsyncd.lua')
+    os.makedirs(os.path.dirname(conf_path), exist_ok=True)
     with open(conf_path,'w') as conf:
         conf.write("settings {\n")
         conf.write(f'    logfile = "{params["logfile"]}",\n')
