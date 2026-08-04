@@ -21,4 +21,5 @@ class HttpErrors:
 
     # добавлять новые исключения таким же образом и пробрасывать в main.py
 
+
 httpErrors = HttpErrors()

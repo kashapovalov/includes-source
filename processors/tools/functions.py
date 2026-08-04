@@ -168,7 +168,7 @@ def detect_audio_format_by_content(file_data):
 
 async def convert_audio(audio, cut_audio=True):
     try:
-        maxLen = 25*16000
+        maxLen = 25*1000 # 25 seconds в pydub аудиосегмент загруженный в память считается в миллисекундах
         audio_format = await asyncio.to_thread(detect_audio_format_by_content, audio)
         a = await asyncio.to_thread( lambda: AudioSegment.from_file(io.BytesIO(audio), format=audio_format).set_sample_width(2).set_frame_rate(16000) )
         if cut_audio:

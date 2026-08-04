@@ -4,7 +4,7 @@ from os.path import join
 
 def worker(exchanger, name, args):
 
-    service = args['service'],
+    service = args['service']
     path = args['path']
 
     try:
@@ -36,8 +36,8 @@ def worker(exchanger, name, args):
     conf_path = join('/tmp', service, 'lsyncd.lua')
     with open(conf_path,'w') as conf:
         conf.write("settings {\n")
-        conf.write(f'    logfile = "{params['logfile']}",\\n')
-        conf.write(f'    statusFile = "{params['statusFile']}",\\n')
+        conf.write(f'    logfile = "{params["logfile"]}",\n')
+        conf.write(f'    statusFile = "{params["statusFile"]}",\n')
         conf.write("    nodaemon = true,\n")
         conf.write("    maxProcesses = 1\n")
         conf.write("}\n\n")
@@ -45,9 +45,9 @@ def worker(exchanger, name, args):
         for server in servers:
             conf.write("sync {\n")
             conf.write("    default.rsyncssh,\n")
-            conf.write(f'    source = "{path}",\\n')
-            conf.write(f'    targetdir = "{path}",\\n')
-            conf.write(f'    host = "{server}",\\n')
+            conf.write(f'    source = "{path}",\n')
+            conf.write(f'    targetdir = "{path}",\n')
+            conf.write(f'    host = "{server}",\n')
             conf.write("    rsync = {\n")
             conf.write("    }\n")
             conf.write("}\n\n")
