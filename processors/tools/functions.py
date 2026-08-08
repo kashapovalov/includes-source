@@ -3,6 +3,36 @@ from pydub import AudioSegment
 from fastapi.responses import JSONResponse
 import io
 
+
+def get_torch_device(configured_device, model_name):
+    """Возвращает доступное устройство torch, при недоступности CUDA возвращается CPU."""
+    from torch import cuda, device as torch_device
+
+    cpu_device = torch_device('cpu')
+    try:
+        selected_device = torch_device(configured_device or 'cpu')
+    except (TypeError, ValueError, RuntimeError) as exc:
+        logging.warning(
+            "Некорректное устройство %r для %s (%s), использую CPU",
+            configured_device,
+            model_name,
+            exc,
+        )
+        return cpu_device
+
+    if selected_device.type == 'cuda':
+        device_index = selected_device.index if selected_device.index is not None else 0
+        if not cuda.is_available() or device_index >= cuda.device_count():
+            logging.warning(
+                "CUDA-устройство %s для %s недоступно, использую CPU",
+                selected_device,
+                model_name,
+            )
+            return cpu_device
+
+    logging.info("%s использует устройство %s", model_name, selected_device)
+    return selected_device
+
 try:
     with open('config.json') as f:
         global_config = json5.load(f)['logs']
