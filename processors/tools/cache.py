@@ -1,8 +1,13 @@
-import logging, pickle, json, asyncio, os
-from time import time
+import asyncio
+import json
+import logging
+import os
+import pickle
 from collections import OrderedDict
-from os.path import join
 from os import makedirs
+from os.path import join
+from time import time
+
 
 class CachedDict():
     def __init__(self, dir, config_path, size=5000):

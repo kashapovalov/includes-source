@@ -1,12 +1,22 @@
-import hashlib, uuid, numpy, logging, asyncio, json, time, json5, traceback, sys
-from pydub import AudioSegment
-from fastapi.responses import JSONResponse
+import asyncio
+import hashlib
 import io
+import json
+import logging
+import sys
+import time
+import traceback
+import uuid
+
+import json5
+import numpy
+from fastapi.responses import JSONResponse
 
 
 def get_torch_device(configured_device, model_name):
     """Возвращает доступное устройство torch, при недоступности CUDA возвращается CPU."""
-    from torch import cuda, device as torch_device
+    from torch import cuda
+    from torch import device as torch_device
 
     cpu_device = torch_device('cpu')
     try:
@@ -197,6 +207,8 @@ def detect_audio_format_by_content(file_data):
 
 
 async def convert_audio(audio, cut_audio=True):
+    from pydub import AudioSegment
+
     try:
         maxLen = 25*1000 # 25 seconds в pydub аудиосегмент загруженный в память считается в миллисекундах
         audio_format = await asyncio.to_thread(detect_audio_format_by_content, audio)

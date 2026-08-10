@@ -1,5 +1,13 @@
-import atexit, json5, logging, logging.handlers, os, sys, threading, sys, traceback
+import atexit
+import logging
+import logging.handlers
+import os
+import sys
+import threading
+import traceback
 from multiprocessing import Queue
+
+import json5
 
 try:
     with open('config.json') as f:

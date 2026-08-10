@@ -1,6 +1,12 @@
-import logging, time, json, os, subprocess
-from processors.tools.globals import global_config
+import json
+import logging
+import os
+import subprocess
+import time
 from os.path import join
+
+from processors.tools.globals import global_config
+
 
 def worker(exchanger, name, args):
 
