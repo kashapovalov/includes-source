@@ -7,10 +7,13 @@ import sys
 import time
 import traceback
 import uuid
+import os
 
 import json5
 import numpy
 from fastapi.responses import JSONResponse
+from datetime import datetime, timezone
+from os.path import join
 
 
 def get_torch_device(configured_device, model_name):
@@ -49,6 +52,20 @@ try:
 except Exception as e:
     logging.error(traceback.format_exc())
     sys.exit()
+
+
+def write_log(exchanger, text, type='sessions'):
+
+    if not exchanger['filewriter']['ready'].value:
+        return
+
+    now = datetime.now(timezone.utc)
+    dir = join("logs", type, now.strftime('%Y/%m/%d'))
+    os.makedirs(dir,exist_ok=True)
+    logname = join(dir, now.strftime("%H")+'.log')
+    id = task_id()
+    exchanger['filewriter']['requests'].put((id,{ 'path': logname, 'text': text }))
+
 
 def md5(text):
     data = text if not isinstance(text,str) else text.encode('utf-8')
