@@ -64,7 +64,10 @@ def write_log(exchanger, text, type='sessions'):
     os.makedirs(dir,exist_ok=True)
     logname = join(dir, now.strftime("%H")+'.log')
     id = task_id()
-    exchanger['filewriter']['requests'].put((id,{ 'path': logname, 'text': text }))
+
+    dt = now.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+
+    exchanger['filewriter']['requests'].put((id,{ 'path': logname, 'text': f"{dt}, {text}" }))
 
 
 def md5(text):
